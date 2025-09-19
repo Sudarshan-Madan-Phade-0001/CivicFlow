@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Civic Flow{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Admin Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl p-8 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold mb-2">
+                    <i class="fas fa-crown mr-3"></i>Admin Dashboard
+                </h1>
+                <p class="text-lg opacity-90">System Overview & Management</p>
+                <p class="text-sm opacity-75">Logged in as: {{ session.username }}</p>
+            </div>
+            <div class="text-right">
+                <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                    <i class="fas fa-chart-line text-2xl mb-2"></i>
+                    <p class="text-sm">System Status</p>
+                    <p class="font-semibold text-lg text-green-300">
+                        <i class="fas fa-circle text-xs mr-1"></i>Online
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center animate-slide-up transform hover:scale-105 transition-transform">
+            <div class="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-hourglass-half text-orange-600 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-orange-600">{{ pending_count }}</h3>
+            <p class="text-gray-600 font-medium">Pending Approval</p>
+            <div class="mt-2 text-xs text-gray-500">
+                <i class="fas fa-exclamation text-orange-500 mr-1"></i>Needs Action
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center animate-slide-up transform hover:scale-105 transition-transform" style="animation-delay: 0.1s">
+            <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-green-600">{{ serving_count }}</h3>
+            <p class="text-gray-600 font-medium">Being Served</p>
+            <div class="mt-2 text-xs text-gray-500">
+                <i class="fas fa-sync-alt text-blue-500 mr-1"></i>Active
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center animate-slide-up transform hover:scale-105 transition-transform" style="animation-delay: 0.2s">
+            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-calendar-day text-blue-600 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-blue-600">{{ today_count }}</h3>
+            <p class="text-gray-600 font-medium">Today's Total</p>
+            <div class="mt-2 text-xs text-gray-500">
+                <i class="fas fa-chart-bar text-purple-500 mr-1"></i>24h
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center animate-slide-up transform hover:scale-105 transition-transform" style="animation-delay: 0.3s">
+            <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-percentage text-purple-600 text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-purple-600">92%</h3>
+            <p class="text-gray-600 font-medium">Efficiency Rate</p>
+            <div class="mt-2 text-xs text-gray-500">
+                <i class="fas fa-arrow-up text-green-500 mr-1"></i>+5% vs yesterday
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Statistics -->
+    <div class="grid lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-slide-up" style="animation-delay: 0.4s">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                <i class="fas fa-chart-pie text-blue-600 mr-2"></i>Service Distribution Today
+            </h2>
+            <div class="space-y-4">
+                {% for service in service_stats %}
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center">
+                        {% if 'Aadhaar' in service[0] %}
+                            <i class="fas fa-id-card text-blue-500 mr-3"></i>
+                        {% elif 'PAN' in service[0] %}
+                            <i class="fas fa-credit-card text-green-500 mr-3"></i>
+                        {% elif 'Passport' in service[0] %}
+                            <i class="fas fa-passport text-red-500 mr-3"></i>
+                        {% elif 'Property' in service[0] %}
+                            <i class="fas fa-home text-orange-500 mr-3"></i>
+                        {% elif 'Driving' in service[0] %}
+                            <i class="fas fa-car text-purple-500 mr-3"></i>
+                        {% elif 'Vehicle' in service[0] %}
+                            <i class="fas fa-truck text-indigo-500 mr-3"></i>
+                        {% elif 'Income' in service[0] %}
+                            <i class="fas fa-calculator text-yellow-500 mr-3"></i>
+                        {% elif 'Voter' in service[0] %}
+                            <i class="fas fa-vote-yea text-blue-700 mr-3"></i>
+                        {% elif 'Ration' in service[0] %}
+                            <i class="fas fa-utensils text-green-700 mr-3"></i>
+                        {% elif 'Pension' in service[0] %}
+                            <i class="fas fa-user-clock text-gray-500 mr-3"></i>
+                        {% else %}
+                            <i class="fas fa-file-alt text-gray-500 mr-3"></i>
+                        {% endif %}
+                        <span class="font-medium">{{ service[0] }}</span>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                            {{ service[1] }} requests
+                        </span>
+                        <div class="w-20 bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ (service[1] / today_count * 100) if today_count > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-slide-up" style="animation-delay: 0.5s">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                <i class="fas fa-tachometer-alt text-green-600 mr-2"></i>System Performance
+            </h2>
+            <div class="space-y-6">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Average Wait Time</span>
+                        <span class="font-semibold text-green-600">12 min</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-green-600 h-3 rounded-full animate-pulse" style="width: 75%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Service Completion Rate</span>
+                        <span class="font-semibold text-blue-600">89%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-blue-600 h-3 rounded-full animate-pulse" style="width: 89%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Customer Satisfaction</span>
+                        <span class="font-semibold text-yellow-600">4.7/5</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-yellow-500 h-3 rounded-full animate-pulse" style="width: 94%"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">System Uptime</span>
+                        <span class="font-semibold text-purple-600">99.8%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-purple-600 h-3 rounded-full animate-pulse" style="width: 99.8%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests -->
+    {% if pending_requests %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 animate-slide-up" style="animation-delay: 0.6s">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">
+            <i class="fas fa-clock text-orange-600 mr-2"></i>Pending Requests ({{ pending_count }})
+        </h2>
+        <div class="space-y-4">
+            {% for request in pending_requests %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-orange-100 text-orange-800 w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                            {{ loop.index }}
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg">{{ request[2] }}</h3>
+                            <p class="text-gray-600">Citizen: {{ request[3] }}</p>
+                            <p class="text-sm text-gray-500">Requested: {{ request[4] }}</p>
+                            <p class="text-sm text-blue-600 font-medium">
+                                <i class="fas fa-calendar mr-1"></i>{{ request[6] }} at {{ request[7] }}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('approve_request', queue_id=request[0]) }}" 
+                           class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-check mr-1"></i>Approve
+                        </a>
+                        <button onclick="showRejectModal({{ request[0] }})" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <i class="fas fa-times mr-1"></i>Reject
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Admin Actions -->
+    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-slide-up" style="animation-delay: 0.6s">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-cogs text-blue-600 mr-2"></i>System Management
+            </h3>
+            <div class="space-y-3">
+                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-colors text-left">
+                    <i class="fas fa-users-cog mr-2"></i>Manage Officers
+                </button>
+                <button onclick="showServicesModal()" class="w-full bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors text-left">
+                    <i class="fas fa-concierge-bell mr-2"></i>Manage Services
+                </button>
+                <button class="w-full bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg transition-colors text-left">
+                    <i class="fas fa-chart-bar mr-2"></i>View Reports
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-slide-up" style="animation-delay: 0.7s">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-bell text-orange-600 mr-2"></i>Notifications
+            </h3>
+            <div class="space-y-3">
+                <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                    <p class="text-sm text-yellow-800">High queue volume detected</p>
+                    <p class="text-xs text-yellow-600 mt-1">2 minutes ago</p>
+                </div>
+                <div class="p-3 bg-green-50 border-l-4 border-green-400 rounded">
+                    <p class="text-sm text-green-800">System backup completed</p>
+                    <p class="text-xs text-green-600 mt-1">1 hour ago</p>
+                </div>
+                <div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                    <p class="text-sm text-blue-800">New officer registered</p>
+                    <p class="text-xs text-blue-600 mt-1">3 hours ago</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 animate-slide-up" style="animation-delay: 0.8s">
+            <h3 class="text-xl font-semibold mb-4 text-gray-800">
+                <i class="fas fa-clock text-red-600 mr-2"></i>Recent Activity
+            </h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <span class="text-gray-600">Queue #45 completed</span>
+                    <span class="text-xs text-gray-500">2m ago</span>
+                </div>
+                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <span class="text-gray-600">New citizen registered</span>
+                    <span class="text-xs text-gray-500">5m ago</span>
+                </div>
+                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <span class="text-gray-600">Service updated</span>
+                    <span class="text-xs text-gray-500">12m ago</span>
+                </div>
+                <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <span class="text-gray-600">Officer login</span>
+                    <span class="text-xs text-gray-500">18m ago</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 rounded-lg text-center animate-slide-up" style="animation-delay: 0.9s">
+            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+            <h4 class="font-semibold">Priority Queue</h4>
+            <p class="text-2xl font-bold">3</p>
+        </div>
+        <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white p-4 rounded-lg text-center animate-slide-up" style="animation-delay: 1s">
+            <i class="fas fa-user-friends text-2xl mb-2"></i>
+            <h4 class="font-semibold">Active Officers</h4>
+            <p class="text-2xl font-bold">8</p>
+        </div>
+        <div class="bg-gradient-to-r from-teal-500 to-teal-600 text-white p-4 rounded-lg text-center animate-slide-up" style="animation-delay: 1.1s">
+            <i class="fas fa-server text-2xl mb-2"></i>
+            <h4 class="font-semibold">Server Load</h4>
+            <p class="text-2xl font-bold">23%</p>
+        </div>
+        <div class="bg-gradient-to-r from-pink-500 to-pink-600 text-white p-4 rounded-lg text-center animate-slide-up" style="animation-delay: 1.2s">
+            <i class="fas fa-database text-2xl mb-2"></i>
+            <h4 class="font-semibold">DB Health</h4>
+            <p class="text-2xl font-bold">100%</p>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Request Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Reject Request</h3>
+            <form id="rejectForm" method="POST">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Solution Message:</label>
+                    <textarea name="message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500" 
+                              placeholder="Suggest alternative dates or solutions..."></textarea>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                        Send & Reject
+                    </button>
+                    <button type="button" onclick="hideRejectModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Services Management Modal -->
+<div id="servicesModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl">
+            <h3 class="text-xl font-bold mb-4">Manage Services & Token Allocation</h3>
+            <div class="space-y-4 max-h-96 overflow-y-auto">
+                {% for service in service_stats %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                        <div>
+                            <h4 class="font-semibold text-lg">{{ service[0] }}</h4>
+                            <div class="text-sm text-gray-600 space-y-1">
+                                <p><span class="font-medium">Total Tokens:</span> 30</p>
+                                <p><span class="font-medium">Requested:</span> {{ service[1] }}</p>
+                                <p><span class="font-medium">Approved:</span> <span id="approved-{{ loop.index0 }}">0</span></p>
+                                <p><span class="font-medium">Available:</span> <span id="available-{{ loop.index0 }}">30</span></p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-gray-100 rounded-lg p-3">
+                                <div class="text-2xl font-bold text-blue-600">{{ 30 - service[1] }}</div>
+                                <div class="text-xs text-gray-500">Slots Left</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <button onclick="approveService('{{ service[0] }}')" 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-check mr-1"></i>Approve All Pending
+                            </button>
+                            <button onclick="showAlternativeModal('{{ service[0] }}')" 
+                                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-calendar-alt mr-1"></i>Alternative Solution
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-6">
+                <button onclick="hideServicesModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alternative Solution Modal -->
+<div id="alternativeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-bold mb-4">Alternative Solution</h3>
+            <form id="alternativeForm" method="POST">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Service:</label>
+                    <input type="text" id="serviceName" readonly class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Message:</label>
+                    <textarea name="message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500" 
+                              placeholder="Suggest alternative dates: Tomorrow 10 AM - 2 PM slots available..."></textarea>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
+                        Send Alternative
+                    </button>
+                    <button type="button" onclick="hideAlternativeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showRejectModal(queueId) {
+        document.getElementById('rejectForm').action = `/reject_request/${queueId}`;
+        document.getElementById('rejectModal').classList.remove('hidden');
+    }
+
+    function hideRejectModal() {
+        document.getElementById('rejectModal').classList.add('hidden');
+    }
+
+    function showServicesModal() {
+        document.getElementById('servicesModal').classList.remove('hidden');
+    }
+
+    function hideServicesModal() {
+        document.getElementById('servicesModal').classList.add('hidden');
+    }
+
+    function approveService(serviceName) {
+        if (confirm(`Approve all pending requests for ${serviceName}?`)) {
+            // This would call a backend route to approve all pending for this service
+            alert(`All pending ${serviceName} requests approved!`);
+            location.reload();
+        }
+    }
+
+    function showAlternativeModal(serviceName) {
+        document.getElementById('serviceName').value = serviceName;
+        document.getElementById('alternativeModal').classList.remove('hidden');
+    }
+
+    function hideAlternativeModal() {
+        document.getElementById('alternativeModal').classList.add('hidden');
+    }
+
+    // Auto-refresh dashboard every 30 seconds
+    setInterval(() => {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}
