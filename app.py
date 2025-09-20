@@ -219,7 +219,7 @@ def dashboard():
                      FROM queue q 
                      JOIN services s ON q.service_id = s.id 
                      JOIN users u ON q.user_id = u.id 
-                     WHERE q.status IN ("waiting", "serving", "completed")
+                     WHERE q.status IN ("waiting", "serving", "completed") AND q.validation_token IS NOT NULL
                      ORDER BY 
                      CASE q.status 
                          WHEN 'serving' THEN 1
@@ -235,7 +235,7 @@ def dashboard():
         c.execute('SELECT * FROM services WHERE is_active = 1')
         services = c.fetchall()
         
-        c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at
+        c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at, q.admin_message
                      FROM queue q 
                      JOIN services s ON q.service_id = s.id 
                      WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
@@ -276,9 +276,9 @@ def book_appointment():
     conn = sqlite3.connect('civic_flow.db')
     c = conn.cursor()
     
-    # Add to queue with preferred date/time
-    c.execute('INSERT INTO queue (user_id, service_id, preferred_date, preferred_time) VALUES (?, ?, ?, ?)',
-              (session['user_id'], service_id, preferred_date, preferred_time))
+    # Add to queue with preferred date/time - status defaults to 'pending'
+    c.execute('INSERT INTO queue (user_id, service_id, preferred_date, preferred_time, status) VALUES (?, ?, ?, ?, ?)',
+              (session['user_id'], service_id, preferred_date, preferred_time, 'pending'))
     conn.commit()
     conn.close()
     
