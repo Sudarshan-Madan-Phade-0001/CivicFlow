@@ -242,6 +242,10 @@ def dashboard():
                      FROM queue q 
                      JOIN services s ON q.service_id = s.id 
                      WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
+                     ORDER BY q.created_at DESC''', (session['user_id'],)) q.created_at, q.admin_message
+                     FROM queue q 
+                     JOIN services s ON q.service_id = s.id 
+                     WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
                      ORDER BY q.created_at DESC''', (session['user_id'],))
         my_queue = c.fetchall()
         
