@@ -164,6 +164,40 @@
                 <i class="fas fa-check-circle text-green-500 mt-1"></i>
                 <div>
                     <h4 class="font-medium">Prepare Documents</h4>
+                    <p class="text-sm text-gray-600">Have all required documents ready</p>
+                </div>
+            </div>
+            <div class="flex items-start space-x-3">
+                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                <div>
+                    <h4 class="font-medium">Check Requirements</h4>
+                    <p class="text-sm text-gray-600">Review service requirements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('current-time').textContent = now.toLocaleTimeString();
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+</script>
+{% endblock %}
+
+    <!-- Tips Section -->
+    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 animate-slide-up" style="animation-delay: 0.5s">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">
+            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Tips for Better Service
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="flex items-start space-x-3">
+                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                <div>
+                    <h4 class="font-medium">Prepare Documents</h4>
                     <p class="text-sm text-gray-600">Have all required documents ready before joining the queue</p>
                 </div>
             </div>

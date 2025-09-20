@@ -223,58 +223,19 @@ def dashboard():
         return render_template('officer_dashboard.html', queue_items=queue_items)
     
     else:
-        # Citizen dashboard - simplified version
-        try:
-            c.execute('SELECT * FROM services WHERE is_active = 1')
-            services = c.fetchall() or []
-            
-            c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at, q.admin_message
-                         FROM queue q 
-                         JOIN services s ON q.service_id = s.id 
-                         WHERE q.user_id = ? 
-                         ORDER BY q.created_at DESC''', (session['user_id'],))
-            my_queue = c.fetchall() or []
-            
-            conn.close()
-            
-            # Return simple HTML if template fails
-            html = f'''<!DOCTYPE html>
-<html><head><title>Citizen Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100">
-<div class="container mx-auto p-8">
-<h1 class="text-3xl font-bold mb-6 text-blue-600"><i class="fas fa-user-circle mr-2"></i>Welcome, {session.get('username', 'Citizen')}!</h1>
-<div class="bg-white rounded-lg shadow p-6 mb-6">
-<h2 class="text-xl font-bold mb-4">Available Services ({len(services)})</h2>
-<div class="grid md:grid-cols-3 gap-4">'''
-            
-            for service in services:
-                html += f'''<div class="border rounded-lg p-4 hover:shadow-md">
-<h3 class="font-semibold">{service[1]}</h3>
-<p class="text-gray-600 text-sm">{service[2]}</p>
-<p class="text-sm text-gray-500">Est. {service[3]} min</p>
-<a href="/join_queue/{service[0]}" class="bg-blue-500 text-white px-4 py-2 rounded mt-2 inline-block">Join Queue</a>
-</div>'''
-            
-            html += '</div></div>'
-            
-            if my_queue:
-                html += '<div class="bg-white rounded-lg shadow p-6 mb-6"><h2 class="text-xl font-bold mb-4">My Requests</h2>'
-                for item in my_queue:
-                    status_color = 'bg-orange-100 text-orange-800' if item[3] == 'pending' else 'bg-yellow-100 text-yellow-800' if item[3] == 'waiting' else 'bg-green-100 text-green-800'
-                    html += f'<div class="border-b py-2"><span class="font-medium">{item[2]}</span><span class="ml-4 px-2 py-1 rounded text-sm {status_color}">{item[3].title()}</span></div>'
-                html += '</div>'
-            
-            html += f'<div class="mt-6"><a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded">Logout</a></div></div></body></html>'
-            
-            return html
-            
-        except Exception as e:
-            if conn:
-                conn.close()
-            return f'<h1>Error</h1><p>{str(e)}</p><p>User: {session.get("username")}</p><p>ID: {session.get("user_id")}</p>'
+        # Citizen dashboard
+        c.execute('SELECT * FROM services WHERE is_active = 1')
+        services = c.fetchall()
+        
+        c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at, q.admin_message
+                     FROM queue q 
+                     JOIN services s ON q.service_id = s.id 
+                     WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
+                     ORDER BY q.created_at DESC''', (session['user_id'],))
+        my_queue = c.fetchall()
+        
+        conn.close()
+        return render_template('citizen_dashboard.html', services=services, my_queue=my_queue)
 
 @app.route('/join_queue/<int:service_id>')
 @login_required
