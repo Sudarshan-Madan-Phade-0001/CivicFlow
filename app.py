@@ -215,11 +215,11 @@ def dashboard():
     
     elif session['role'] == 'officer':
         # Officer dashboard
-        c.execute('''SELECT q.id, q.queue_number, s.name, u.username, q.created_at, q.status, s.estimated_time
+        c.execute('''SELECT q.id, q.queue_number, s.name, u.username, q.created_at, q.status, s.estimated_time, q.validation_token, q.preferred_date, q.preferred_time
                      FROM queue q 
                      JOIN services s ON q.service_id = s.id 
                      JOIN users u ON q.user_id = u.id 
-                     WHERE DATE(q.created_at) = DATE("now") AND q.status IN ("waiting", "serving", "completed")
+                     WHERE q.status IN ("waiting", "serving", "completed")
                      ORDER BY 
                      CASE q.status 
                          WHEN 'serving' THEN 1
@@ -367,8 +367,12 @@ def approve_request(queue_id):
     conn = sqlite3.connect('civic_flow.db')
     c = conn.cursor()
     
-    # Get next queue number
-    c.execute('SELECT COALESCE(MAX(queue_number), 0) + 1 FROM queue WHERE DATE(created_at) = DATE("now") AND status != "pending"')
+    # Get service_id for this request
+    c.execute('SELECT service_id FROM queue WHERE id = ?', (queue_id,))
+    service_id = c.fetchone()[0]
+    
+    # Get next queue number for this specific service
+    c.execute('SELECT COALESCE(MAX(queue_number), 0) + 1 FROM queue WHERE service_id = ? AND DATE(created_at) = DATE("now") AND status != "pending"', (service_id,))
     queue_number = c.fetchone()[0]
     
     # Generate validation token
@@ -400,30 +404,86 @@ def reject_request(queue_id):
 @app.route('/approve_service/<service_name>')
 @admin_required
 def approve_service(service_name):
+    import random, string
+    
     conn = sqlite3.connect('civic_flow.db')
     c = conn.cursor()
     
     # Get service ID
     c.execute('SELECT id FROM services WHERE name = ?', (service_name,))
-    service_id = c.fetchone()[0]
+    result = c.fetchone()
+    if not result:
+        flash(f'Service {service_name} not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    service_id = result[0]
     
     # Get pending requests for this service (limit to 30 tokens)
     c.execute('''SELECT id FROM queue WHERE service_id = ? AND status = "pending" 
                  ORDER BY created_at ASC LIMIT 30''', (service_id,))
     pending_requests = c.fetchall()
     
-    # Approve requests and assign queue numbers
-    for i, request in enumerate(pending_requests):
-        c.execute('SELECT COALESCE(MAX(queue_number), 0) + 1 FROM queue WHERE DATE(created_at) = DATE("now") AND status != "pending"')
+    # Approve requests and assign queue numbers with validation tokens
+    for request in pending_requests:
+        # Sequential queue number for this service (1, 2, 3, 4...)
+        c.execute('SELECT COALESCE(MAX(queue_number), 0) + 1 FROM queue WHERE service_id = ? AND DATE(created_at) = DATE("now") AND status != "pending"', (service_id,))
         queue_number = c.fetchone()[0]
         
-        c.execute('UPDATE queue SET status = "waiting", queue_number = ? WHERE id = ?', 
-                  (queue_number, request[0]))
+        # Generate validation token
+        validation_token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        c.execute('UPDATE queue SET status = "waiting", queue_number = ?, validation_token = ? WHERE id = ?', 
+                  (queue_number, validation_token, request[0]))
     
     conn.commit()
     conn.close()
     
     flash(f'Approved {len(pending_requests)} requests for {service_name}', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/approve_current_request/<service_name>')
+@admin_required
+def approve_current_request(service_name):
+    import random, string
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    
+    # Get service ID
+    c.execute('SELECT id FROM services WHERE name = ?', (service_name,))
+    result = c.fetchone()
+    if not result:
+        flash(f'Service {service_name} not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    service_id = result[0]
+    
+    # Get oldest pending request for this service
+    c.execute('''SELECT id FROM queue WHERE service_id = ? AND status = "pending" 
+                 ORDER BY created_at ASC LIMIT 1''', (service_id,))
+    result = c.fetchone()
+    
+    if not result:
+        flash(f'No pending requests for {service_name}', 'info')
+        return redirect(url_for('dashboard'))
+    
+    queue_id = result[0]
+    
+    # Get next queue number for this service
+    c.execute('SELECT COALESCE(MAX(queue_number), 0) + 1 FROM queue WHERE service_id = ? AND DATE(created_at) = DATE("now") AND status != "pending"', (service_id,))
+    queue_number = c.fetchone()[0]
+    
+    # Generate validation token
+    validation_token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    
+    # Approve the request
+    c.execute('UPDATE queue SET status = "waiting", queue_number = ?, validation_token = ? WHERE id = ?', 
+              (queue_number, validation_token, queue_id))
+    
+    conn.commit()
+    conn.close()
+    
+    flash(f'Approved 1 request for {service_name}. Token: {queue_number}, Validation ID: {validation_token}', 'success')
     return redirect(url_for('dashboard'))
 
 @app.route('/alternative_solution/<service_name>', methods=['POST'])
@@ -500,6 +560,22 @@ def validate_token():
     conn.close()
     
     flash(f'Token validated! Now serving {username} for {service_name}', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/clear_queue')
+@login_required
+def clear_queue():
+    if session['role'] not in ['admin', 'officer']:
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM queue')
+    conn.commit()
+    conn.close()
+    
+    flash('All queue items cleared successfully', 'success')
     return redirect(url_for('dashboard'))
 
 @app.route('/admin_login', methods=['GET', 'POST'])

@@ -69,9 +69,15 @@
             <h2 class="text-2xl font-bold text-gray-800">
                 <i class="fas fa-list text-green-600 mr-2"></i>Current Queue
             </h2>
-            <button onclick="refreshQueue()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
-                <i class="fas fa-sync-alt mr-1"></i>Refresh
-            </button>
+            <div class="flex space-x-2">
+                <button onclick="refreshQueue()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                </button>
+                <a href="{{ url_for('clear_queue') }}" onclick="return confirm('Are you sure you want to clear all queue items?')" 
+                   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-trash mr-1"></i>Clear Queue
+                </a>
+            </div>
         </div>
 
         {% if queue_items %}
@@ -79,11 +85,12 @@
             <table class="w-full table-auto">
                 <thead>
                     <tr class="bg-gray-50">
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Queue #</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Token #</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Citizen</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Service</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Appointment</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Wait Time</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Validation ID</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actions</th>
                     </tr>
                 </thead>
@@ -106,6 +113,14 @@
                         <td class="px-4 py-4">
                             <span class="text-gray-800">{{ item[2] }}</span>
                         </td>
+                        <td class="px-4 py-4 text-sm">
+                            <div class="text-blue-600 font-medium">
+                                <i class="fas fa-calendar mr-1"></i>{{ item[8] }}
+                            </div>
+                            <div class="text-gray-600">
+                                <i class="fas fa-clock mr-1"></i>{{ item[9] }}
+                            </div>
+                        </td>
                         <td class="px-4 py-4">
                             {% if item[5] == 'waiting' %}
                                 <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
@@ -121,9 +136,8 @@
                                 </span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-4 text-sm text-gray-600">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span>{{ item[6] }} min</span>
+                        <td class="px-4 py-4 text-sm">
+                            <code class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ item[7] }}</code>
                         </td>
                         <td class="px-4 py-4">
                             <div class="flex space-x-2">

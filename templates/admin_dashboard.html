@@ -347,6 +347,10 @@
                             </div>
                         </div>
                         <div class="flex flex-col space-y-2">
+                            <button onclick="approveCurrentRequest('{{ service[0] }}')" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-check-circle mr-1"></i>Approve Current
+                            </button>
                             <button onclick="approveService('{{ service[0] }}')" 
                                     class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
                                 <i class="fas fa-check mr-1"></i>Approve All Pending
@@ -415,11 +419,15 @@
         document.getElementById('servicesModal').classList.add('hidden');
     }
 
+    function approveCurrentRequest(serviceName) {
+        if (confirm(`Approve the oldest pending request for ${serviceName}?`)) {
+            window.location.href = `/approve_current_request/${serviceName}`;
+        }
+    }
+
     function approveService(serviceName) {
         if (confirm(`Approve all pending requests for ${serviceName}?`)) {
-            // This would call a backend route to approve all pending for this service
-            alert(`All pending ${serviceName} requests approved!`);
-            location.reload();
+            window.location.href = `/approve_service/${serviceName}`;
         }
     }
 
