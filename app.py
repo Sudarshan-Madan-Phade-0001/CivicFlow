@@ -219,7 +219,10 @@ def dashboard():
                      FROM queue q 
                      JOIN services s ON q.service_id = s.id 
                      JOIN users u ON q.user_id = u.id 
-                     WHERE q.status IN ("waiting", "serving", "completed") AND q.validation_token IS NOT NULL
+                     WHERE q.status IN ("waiting", "serving", "completed") 
+                     AND q.validation_token IS NOT NULL 
+                     AND q.validation_token != ''
+                     AND q.queue_number IS NOT NULL
                      ORDER BY 
                      CASE q.status 
                          WHEN 'serving' THEN 1

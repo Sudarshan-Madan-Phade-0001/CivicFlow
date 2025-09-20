@@ -386,7 +386,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Alternative Message:</label>
                     <textarea name="message" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500" 
-                              placeholder="Suggest alternative dates: Tomorrow 10 AM - 2 PM slots available..."></textarea>
+                              placeholder="Alternative slots available: Tomorrow 2 PM - 4 PM, or Next Monday 10 AM - 12 PM. Please visit during these times."></textarea>
                 </div>
                 <div class="flex space-x-3">
                     <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">
@@ -433,6 +433,7 @@
 
     function showAlternativeModal(serviceName) {
         document.getElementById('serviceName').value = serviceName;
+        document.getElementById('alternativeForm').action = `/alternative_solution/${serviceName}`;
         document.getElementById('alternativeModal').classList.remove('hidden');
     }
 
