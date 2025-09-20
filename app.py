@@ -223,18 +223,34 @@ def dashboard():
         return render_template('officer_dashboard.html', queue_items=queue_items)
     
     else:
-        c.execute('SELECT * FROM services WHERE is_active = 1')
-        services = c.fetchall()
-        
-        c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at, q.admin_message
-                     FROM queue q 
-                     JOIN services s ON q.service_id = s.id 
-                     WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
-                     ORDER BY q.created_at DESC''', (session['user_id'],))
-        my_queue = c.fetchall()
-        
-        conn.close()
-        return render_template('citizen_dashboard.html', services=services, my_queue=my_queue)
+        try:
+            c.execute('SELECT * FROM services WHERE is_active = 1')
+            services = c.fetchall()
+            
+            c.execute('''SELECT q.id, q.queue_number, s.name, q.status, q.created_at, q.admin_message
+                         FROM queue q 
+                         JOIN services s ON q.service_id = s.id 
+                         WHERE q.user_id = ? AND DATE(q.created_at) = DATE("now")
+                         ORDER BY q.created_at DESC''', (session['user_id'],))
+            my_queue = c.fetchall()
+            
+            conn.close()
+            return render_template('citizen_dashboard.html', services=services, my_queue=my_queue)
+        except Exception as e:
+            if conn:
+                conn.close()
+            # Return a simple HTML response instead of template to avoid template errors
+            return f'''<!DOCTYPE html>
+<html><head><title>Citizen Dashboard</title></head>
+<body>
+<h1>Citizen Dashboard - Debug Mode</h1>
+<p>Username: {session.get("username", "Unknown")}</p>
+<p>User ID: {session.get("user_id", "Unknown")}</p>
+<p>Services Count: {len(services) if "services" in locals() else "Error loading"}</p>
+<p>Queue Count: {len(my_queue) if "my_queue" in locals() else "Error loading"}</p>
+<p>Error: {str(e)}</p>
+<a href="{url_for('logout')}">Logout</a>
+</body></html>'''
 
 @app.route('/join_queue/<int:service_id>')
 @login_required
@@ -376,6 +392,6 @@ def admin_setup():
 if __name__ == '__main__':
     init_db()
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
 else:
     init_db()
