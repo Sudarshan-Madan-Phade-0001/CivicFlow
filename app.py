@@ -235,7 +235,7 @@ def dashboard():
         my_queue = c.fetchall()
         
         conn.close()
-        return render_template('citizen_dashboard.html', services=services, my_queue=my_queue)
+        return render_template('citizen_simple.html', services=services, my_queue=my_queue)
 
 @app.route('/join_queue/<int:service_id>')
 @login_required
@@ -343,6 +343,26 @@ def admin_login():
             flash('Invalid admin credentials', 'error')
     
     return render_template('admin_login.html')
+
+@app.errorhandler(500)
+def internal_error(error):
+    return f'<h1>500 Error</h1><p>{str(error)}</p><p>Check server logs for details</p>', 500
+
+@app.route('/test_citizen')
+@login_required
+def test_citizen():
+    if session['role'] != 'citizen':
+        return 'Access denied', 403
+    
+    return '''<!DOCTYPE html>
+<html><head><title>Test Citizen</title>
+<script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-gray-100 p-8">
+<h1 class="text-2xl font-bold mb-4">Citizen Dashboard Test</h1>
+<p>Username: ''' + session.get('username', 'Unknown') + '''</p>
+<p>User ID: ''' + str(session.get('user_id', 'Unknown')) + '''</p>
+<a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded">Logout</a>
+</body></html>'''
 
 @app.route('/admin_setup', methods=['GET', 'POST'])
 def admin_setup():

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Citizen Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-6 text-blue-600">
+            <i class="fas fa-user-circle mr-2"></i>Welcome, {{ session.username }}!
+        </h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Available Services</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+                {% for service in services %}
+                <div class="border rounded-lg p-4 hover:shadow-md">
+                    <h3 class="font-semibold">{{ service[1] }}</h3>
+                    <p class="text-gray-600 text-sm">{{ service[2] }}</p>
+                    <p class="text-sm text-gray-500">Est. {{ service[3] }} min</p>
+                    <a href="{{ url_for('join_queue', service_id=service[0]) }}" 
+                       class="bg-blue-500 text-white px-4 py-2 rounded mt-2 inline-block">
+                        Join Queue
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if my_queue %}
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-bold mb-4">My Requests</h2>
+            {% for item in my_queue %}
+            <div class="border-b py-2">
+                <span class="font-medium">{{ item[2] }}</span>
+                <span class="ml-4 px-2 py-1 rounded text-sm
+                    {% if item[3] == 'pending' %}bg-orange-100 text-orange-800
+                    {% elif item[3] == 'waiting' %}bg-yellow-100 text-yellow-800
+                    {% elif item[3] == 'completed' %}bg-green-100 text-green-800
+                    {% endif %}">
+                    {{ item[3].title() }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="mt-6">
+            <a href="{{ url_for('logout') }}" class="bg-red-500 text-white px-4 py-2 rounded">
+                Logout
+            </a>
+        </div>
+    </div>
+</body>
+</html>
