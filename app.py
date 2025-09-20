@@ -209,9 +209,6 @@ def dashboard():
                      JOIN services s ON q.service_id = s.id 
                      JOIN users u ON q.user_id = u.id 
                      WHERE q.status IN ("waiting", "serving", "completed") 
-                     AND q.validation_token IS NOT NULL 
-                     AND q.validation_token != ''
-                     AND q.queue_number IS NOT NULL
                      ORDER BY 
                      CASE q.status 
                          WHEN 'serving' THEN 1
@@ -321,6 +318,67 @@ def approve_request(queue_id):
     flash(f'Request approved! Token: {queue_number}, Validation ID: {validation_token}', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/reject_request/<int:queue_id>')
+@admin_required
+def reject_request(queue_id):
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('UPDATE queue SET status = "rejected" WHERE id = ?', (queue_id,))
+    conn.commit()
+    conn.close()
+    
+    flash('Request rejected', 'info')
+    return redirect(url_for('dashboard'))
+
+@app.route('/alternative_request/<int:queue_id>', methods=['POST'])
+@admin_required
+def alternative_request(queue_id):
+    alternative_message = request.form['alternative_message']
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('UPDATE queue SET status = "alternative", admin_message = ? WHERE id = ?', 
+              (alternative_message, queue_id))
+    conn.commit()
+    conn.close()
+    
+    flash('Alternative option provided to citizen', 'info')
+    return redirect(url_for('dashboard'))
+
+@app.route('/serve_citizen/<int:queue_id>')
+@login_required
+def serve_citizen(queue_id):
+    if session['role'] != 'officer':
+        flash('Officer access required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('UPDATE queue SET status = "serving", officer_id = ? WHERE id = ? AND status = "waiting"', 
+              (session['user_id'], queue_id))
+    conn.commit()
+    conn.close()
+    
+    flash('Citizen is now being served', 'success')
+    return redirect(url_for('dashboard'))
+
+@app.route('/complete_service/<int:queue_id>')
+@login_required
+def complete_service(queue_id):
+    if session['role'] != 'officer':
+        flash('Officer access required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('UPDATE queue SET status = "completed", served_at = CURRENT_TIMESTAMP WHERE id = ? AND officer_id = ?', 
+              (queue_id, session['user_id']))
+    conn.commit()
+    conn.close()
+    
+    flash('Service completed successfully', 'success')
+    return redirect(url_for('dashboard'))
+
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
@@ -364,6 +422,33 @@ def test_citizen():
 <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded">Logout</a>
 </body></html>'''
 
+@app.route('/validate_token', methods=['POST'])
+@login_required
+def validate_token():
+    if session['role'] != 'officer':
+        flash('Officer access required', 'error')
+        return redirect(url_for('dashboard'))
+    
+    validation_token = request.form['validation_token'].upper()
+    
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    c.execute('''SELECT q.id, q.queue_number, s.name, u.username, q.preferred_date, q.preferred_time
+                 FROM queue q 
+                 JOIN services s ON q.service_id = s.id 
+                 JOIN users u ON q.user_id = u.id 
+                 WHERE q.validation_token = ? AND q.status = "waiting"''', (validation_token,))
+    result = c.fetchone()
+    
+    if result:
+        queue_id, queue_number, service_name, username, pref_date, pref_time = result
+        flash(f'Valid token! Citizen: {username}, Service: {service_name}, Queue: #{queue_number}, Scheduled: {pref_date} {pref_time}', 'success')
+    else:
+        flash('Invalid validation token or citizen not in waiting status', 'error')
+    
+    conn.close()
+    return redirect(url_for('dashboard'))
+
 @app.route('/admin_setup', methods=['GET', 'POST'])
 def admin_setup():
     conn = sqlite3.connect('civic_flow.db')
@@ -393,6 +478,28 @@ def admin_setup():
         return redirect(url_for('admin_login'))
     
     return render_template('admin_setup.html')
+
+@app.route('/create_admin')
+def create_admin():
+    conn = sqlite3.connect('civic_flow.db')
+    c = conn.cursor()
+    
+    # Check if admin already exists
+    c.execute('SELECT COUNT(*) FROM users WHERE role = "admin"')
+    admin_count = c.fetchone()[0]
+    
+    if admin_count > 0:
+        conn.close()
+        return 'Admin already exists. <a href="/admin_login">Login here</a>'
+    
+    # Create default admin
+    hashed_password = generate_password_hash('admin123')
+    c.execute('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)',
+              ('admin', 'admin@civic.gov', hashed_password, 'admin'))
+    conn.commit()
+    conn.close()
+    
+    return 'Admin created successfully! Username: admin, Password: admin123. <a href="/admin_login">Login here</a>'
 
 if __name__ == '__main__':
     init_db()

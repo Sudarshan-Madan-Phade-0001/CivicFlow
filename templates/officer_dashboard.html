@@ -73,10 +73,10 @@
                 <button onclick="refreshQueue()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-sync-alt mr-1"></i>Refresh
                 </button>
-                <a href="{{ url_for('clear_queue') }}" onclick="return confirm('Are you sure you want to clear all queue items?')" 
+                <button onclick="alert('Feature coming soon!')" 
                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
                     <i class="fas fa-trash mr-1"></i>Clear Queue
-                </a>
+                </button>
             </div>
         </div>
 
@@ -142,7 +142,7 @@
                         <td class="px-4 py-4">
                             <div class="flex space-x-2">
                                 {% if item[5] == 'waiting' %}
-                                    <a href="{{ url_for('serve_next', queue_id=item[0]) }}" 
+                                    <a href="{{ url_for('serve_citizen', queue_id=item[0]) }}" 
                                        class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-colors">
                                         <i class="fas fa-play mr-1"></i>Serve
                                     </a>
@@ -178,14 +178,14 @@
             <i class="fas fa-shield-check text-blue-600 mr-2"></i>Validate Citizen Token
         </h3>
         <form method="POST" action="{{ url_for('validate_token') }}" class="flex space-x-4">
-            <input type="text" name="validation_id" placeholder="Enter Validation ID" required
+            <input type="text" name="validation_token" placeholder="Enter Validation Token" required
                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
                 <i class="fas fa-check mr-1"></i>Validate
             </button>
         </form>
         <p class="text-sm text-gray-500 mt-2">
-            <i class="fas fa-info-circle mr-1"></i>Enter the validation ID provided by admin to verify citizen appointment
+            <i class="fas fa-info-circle mr-1"></i>Enter the validation token provided by admin to verify citizen appointment
         </p>
     </div>
 
@@ -246,9 +246,9 @@
     setInterval(refreshQueue, 15000);
 
     // Add loading states to action buttons
-    document.querySelectorAll('a[href*="serve_next"], a[href*="complete_service"]').forEach(link => {
+    document.querySelectorAll('a[href*="serve_citizen"], a[href*="complete_service"]').forEach(link => {
         link.addEventListener('click', function(e) {
-            if (this.href.includes('serve_next')) {
+            if (this.href.includes('serve_citizen')) {
                 this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Serving...';
             } else {
                 this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Completing...';
