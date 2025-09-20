@@ -170,8 +170,11 @@
     </div>
 
     <!-- Pending Requests -->
-    {% if pending_requests %}
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8 animate-slide-up" style="animation-delay: 0.6s">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">
+            <i class="fas fa-clock text-orange-600 mr-2"></i>Pending Requests ({{ pending_count }})
+        </h2>
+        {% if pending_requests %}
         <h2 class="text-2xl font-bold mb-6 text-gray-800">
             <i class="fas fa-clock text-orange-600 mr-2"></i>Pending Requests ({{ pending_count }})
         </h2>
@@ -206,8 +209,14 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-4"></i>
+            <p class="text-lg">No pending requests at the moment</p>
+            <p class="text-sm">New citizen requests will appear here for approval</p>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <!-- Admin Actions -->
     <div class="grid lg:grid-cols-3 gap-6 mb-8">
