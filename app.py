@@ -21,7 +21,18 @@ app.logger.setLevel(logging.DEBUG)
 
 # ----------------- Database helpers -----------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'civic_flow.db')
+
+# On platforms like Render, the app directory is read-only at runtime.
+# Use a writable directory (env DATABASE_DIR or /tmp) when BASE_DIR isn't writable.
+DATA_DIR = BASE_DIR
+try:
+    if not os.access(BASE_DIR, os.W_OK):
+        DATA_DIR = os.environ.get('DATABASE_DIR', '/tmp')
+        os.makedirs(DATA_DIR, exist_ok=True)
+except Exception:
+    DATA_DIR = os.environ.get('DATABASE_DIR', '/tmp')
+
+DB_PATH = os.path.join(DATA_DIR, 'civic_flow.db')
 
 def get_conn():
     conn = sqlite3.connect(DB_PATH, timeout=10)
